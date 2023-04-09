@@ -40,6 +40,10 @@ pub struct Args {
     #[arg(short = 'T', long, default_value_t = false)]
     pub show_tabs: bool,
 
+    /// (ignored)
+    #[arg(short = 'u', default_value_t = false)]
+    pub ignored: bool,
+
     /// use ^ and M- notation, except for LFD and TAB
     #[arg(short = 'v', long, default_value_t = false)]
     pub show_nonprinting: bool,

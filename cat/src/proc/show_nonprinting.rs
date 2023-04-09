@@ -25,9 +25,8 @@ impl Processor for ShowNonprinting {
         let mut bytes = Vec::with_capacity(line.len() * 4);
         for b in line {
             let mut c = b;
-            let mut meta = false;
+            let meta = c >= 0x80;
             if c >= 0x80 {
-                meta = true;
                 bytes.push(b'M');
                 bytes.push(b'-');
                 c -= 0x80;
