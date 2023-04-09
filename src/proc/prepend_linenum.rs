@@ -11,15 +11,15 @@ mod tests {
 
     #[test]
     fn adds_a_number_to_a_line() {
-        let line = Vec::from("asdf".as_bytes());
-        let result = Vec::from("     7 asdf".as_bytes());
+        let line = b"asdf".to_vec();
+        let result = b"     7 asdf".to_vec();
         assert_eq!(prepend_linenum(&line, 7), result)
     }
 
     #[test]
     fn number_is_padded() {
-        let line = Vec::from("asdf".as_bytes());
-        let result = Vec::from("    23 asdf".as_bytes());
+        let line = b"asdf".to_vec();
+        let result = b"    23 asdf".to_vec();
         assert_eq!(prepend_linenum(&line, 23), result)
     }
 }

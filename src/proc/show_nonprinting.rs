@@ -55,14 +55,14 @@ mod tests {
         let mut p = ShowNonprinting::new();
         assert_eq!(
             p.proc(vec![0x00, 0x01, 0x02, b'\t', 0x1D, 0x1E, 0x1F, b'\n', 0x7F]),
-            Some(Vec::from("^@^A^B\t^]^^^_\n^?".as_bytes()))
+            Some(b"^@^A^B\t^]^^^_\n^?".to_vec())
         );
     }
 
     #[test]
     fn normal_chars_are_left_in_place() {
         let mut p = ShowNonprinting::new();
-        let str = Vec::from("A\ts1\n".as_bytes());
+        let str = b"A\ts1\n".to_vec();
         assert_eq!(p.proc(str.clone()), Some(str.clone()));
     }
 
@@ -73,7 +73,7 @@ mod tests {
         let str = vec![0x80, 0x81, 0x82, b'\t', 0xFD, 0xFE, 0xFF];
         assert_eq!(
             p.proc(str.clone()),
-            Some(Vec::from("M-^@M-^AM-^B\tM-}M-~M-^?".as_bytes()))
+            Some(b"M-^@M-^AM-^B\tM-}M-~M-^?".to_vec())
         );
     }
 }

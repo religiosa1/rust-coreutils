@@ -5,6 +5,7 @@ mod proc;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
+use std::io::BufReader;
 
 use args::Args;
 use chunked::ChunkReader;
@@ -25,7 +26,9 @@ fn cat(file: &str, processor: &mut ProcessorDirector) -> io::Result<()> {
         _ => Box::new(File::open(file)?),
     };
 
-    for line in input.chunks(b'\n', 8192) {
+    let reader = BufReader::new(input);
+
+    for line in reader.chunks(b'\n', 8192) {
         if let Some(processed_line) = processor.proc(line?) {
             io::stdout().write(&processed_line)?;
         }

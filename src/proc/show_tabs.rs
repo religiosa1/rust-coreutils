@@ -11,7 +11,7 @@ impl Processor for ShowTabs {
         let mut retval: Vec<u8> = Vec::new();
         for c in line {
             if c == b'\t' {
-                retval.extend("^I".as_bytes());
+                retval.extend(b"^I");
             } else {
                 retval.push(c);
             }
@@ -26,9 +26,9 @@ mod tests {
 
     #[test]
     fn replaces_tabs_with_i() {
-        let line: Vec<u8> = Vec::from("asdf\tdf".as_bytes());
+        let line: Vec<u8> = b"asdf\tdf".to_vec();
         let mut p = ShowTabs::new();
 
-        assert_eq!(p.proc(line), Some(Vec::from("asdf^Idf".as_bytes())));
+        assert_eq!(p.proc(line), Some(b"asdf^Idf".to_vec()));
     }
 }

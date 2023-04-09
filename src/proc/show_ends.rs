@@ -11,7 +11,7 @@ impl Processor for ShowEnds {
         let mut retval: Vec<u8> = Vec::new();
         for c in line {
             if c == b'\n' {
-                retval.extend("$\n".as_bytes());
+                retval.extend(b"$\n");
             } else {
                 retval.push(c);
             }
@@ -26,9 +26,9 @@ mod tests {
 
     #[test]
     fn appends_usd_to_line_ends() {
-        let line: Vec<u8> = Vec::from("asdf\ndf".as_bytes());
+        let line: Vec<u8> = b"asdf\ndf".to_vec();
         let mut p = ShowEnds::new();
 
-        assert_eq!(p.proc(line), Some(Vec::from("asdf$\ndf".as_bytes())));
+        assert_eq!(p.proc(line), Some(b"asdf$\ndf".to_vec()));
     }
 }

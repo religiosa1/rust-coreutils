@@ -33,8 +33,8 @@ mod tests {
 
     #[test]
     fn adds_a_number_to_a_line() {
-        let line1: Vec<u8> = vec![b'a', b'b', b'c', b'\n'];
-        let line2: Vec<u8> = vec![b'e', b'f'];
+        let line1: Vec<u8> = b"abc\n".to_vec();
+        let line2: Vec<u8> = b"ef".to_vec();
 
         let mut p = NumberAll::new();
 
@@ -44,8 +44,8 @@ mod tests {
 
     #[test]
     fn if_the_line_was_chuncked_doesnt_add_a_number() {
-        let line1: Vec<u8> = vec![b'a', b'b', b'c'];
-        let line2: Vec<u8> = vec![b'e', b'f'];
+        let line1: Vec<u8> = b"abc".to_vec();
+        let line2: Vec<u8> = b"de".to_vec();
 
         let mut p = NumberAll::new();
 

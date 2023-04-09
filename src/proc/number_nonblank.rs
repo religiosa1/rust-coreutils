@@ -15,9 +15,9 @@ impl NumberNonblank {
 }
 impl Processor for NumberNonblank {
     fn proc(&mut self, line: Vec<u8>) -> Option<Vec<u8>> {
-        let is_chunked = !line.ends_with(&[b'\n']);
+        let is_chunked = !line.ends_with(b"\n");
 
-        let retval = if self.last_chunked || line.eq(&[b'\n']) {
+        let retval = if self.last_chunked || line.eq(b"\n") {
             line
         } else {
             self.linenum += 1;
@@ -35,8 +35,8 @@ mod tests {
     #[test]
     fn only_nonempty_lines_are_numbered() {
         let mut p = NumberNonblank::new();
-        let line = Vec::from("asd\n".as_bytes());
-        let empty_line = Vec::from("\n".as_bytes());
+        let line = b"asd\n".to_vec();
+        let empty_line = b"\n".to_vec();
         assert_eq!(p.proc(line.clone()), Some(prepend_linenum(&line, 1)));
         assert_eq!(p.proc(empty_line.clone()), Some(empty_line.clone()));
         assert_eq!(p.proc(line.clone()), Some(prepend_linenum(&line, 2)));
@@ -46,9 +46,9 @@ mod tests {
     #[test]
     fn chunked_lines_are_not_considered_empty() {
         let mut p = NumberNonblank::new();
-        let line = Vec::from("asd\n".as_bytes());
-        let empty_line = Vec::from("\n".as_bytes());
-        let chunked_line = Vec::from("asd".as_bytes());
+        let line = b"asd\n".to_vec();
+        let empty_line = b"\n".to_vec();
+        let chunked_line = b"asd".to_vec();
         assert_eq!(
             p.proc(chunked_line.clone()),
             Some(prepend_linenum(&chunked_line, 1))
