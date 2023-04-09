@@ -2,6 +2,7 @@ use crate::args;
 
 mod number_all;
 mod number_nonblank;
+mod prepend_linenum;
 mod show_ends;
 mod show_nonprinting;
 mod show_tabs;
@@ -39,7 +40,7 @@ impl ProcessorDirector {
         d
     }
 
-    pub fn proc(&mut self, line: String) -> Option<String> {
+    pub fn proc(&mut self, line: Vec<u8>) -> Option<Vec<u8>> {
         self.processors
             .iter_mut()
             .fold(Some(line), |acc, processor| {
@@ -49,5 +50,5 @@ impl ProcessorDirector {
 }
 
 trait Processor {
-    fn proc(&mut self, line: String) -> Option<String>;
+    fn proc(&mut self, line: Vec<u8>) -> Option<Vec<u8>>;
 }

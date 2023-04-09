@@ -2,25 +2,67 @@ use crate::proc::Processor;
 
 pub struct SqueezeBlank {
     last_blank: bool,
+    last_chunked: bool,
 }
 impl SqueezeBlank {
     pub fn new() -> SqueezeBlank {
-        SqueezeBlank { last_blank: false }
+        SqueezeBlank {
+            last_blank: false,
+            last_chunked: false,
+        }
     }
 }
 impl Processor for SqueezeBlank {
-    fn proc(&mut self, line: String) -> Option<String> {
-        if line == "" {
-            let retval = if self.last_blank {
+    fn proc(&mut self, line: Vec<u8>) -> Option<Vec<u8>> {
+        let is_chunked = !line.ends_with(&[b'\n']);
+
+        let retval = if self.last_chunked {
+            self.last_blank = line.len() == 0;
+            Some(line)
+        } else {
+            let is_blank = line.eq(&[b'\n']);
+            let last_blank = self.last_blank;
+            self.last_blank = is_blank;
+            if is_blank && last_blank {
                 None
             } else {
-                Some(String::from(""))
-            };
-            self.last_blank = true;
-            retval
-        } else {
-            self.last_blank = false;
-            Some(line)
-        }
+                Some(line)
+            }
+        };
+        self.last_chunked = is_chunked;
+        retval
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn repeated_blank_lines_are_ommited() {
+        let mut p = SqueezeBlank::new();
+        let line = Vec::from("asd\n".as_bytes());
+        let empty_line = Vec::from("\n".as_bytes());
+
+        assert_eq!(p.proc(line.clone()), Some(line.clone()));
+        assert_eq!(p.proc(empty_line.clone()), Some(empty_line.clone()));
+        assert_eq!(p.proc(empty_line.clone()), None);
+        assert_eq!(p.proc(empty_line.clone()), None);
+        assert_eq!(p.proc(line.clone()), Some(line.clone()));
+    }
+
+    #[test]
+    fn chunked_lines_are_not_considered_as_blanks() {
+        let mut p = SqueezeBlank::new();
+        let line = Vec::from("asd\n".as_bytes());
+        let chunked_line = Vec::from("asd".as_bytes());
+        let empty_line = Vec::from("\n".as_bytes());
+
+        assert_eq!(p.proc(chunked_line.clone()), Some(chunked_line.clone()));
+        assert_eq!(p.proc(chunked_line.clone()), Some(chunked_line.clone()));
+        assert_eq!(p.proc(empty_line.clone()), Some(empty_line.clone()));
+        assert_eq!(p.proc(empty_line.clone()), Some(empty_line.clone()));
+        assert_eq!(p.proc(empty_line.clone()), None);
+        assert_eq!(p.proc(line.clone()), Some(line.clone()));
     }
 }

@@ -21,10 +21,10 @@ impl ShowNonprinting {
     }
 }
 impl Processor for ShowNonprinting {
-    fn proc(&mut self, line: String) -> Option<String> {
+    fn proc(&mut self, line: Vec<u8>) -> Option<Vec<u8>> {
         let mut bytes = Vec::new();
-        for b in line.as_bytes() {
-            let mut c = *b;
+        for b in line {
+            let mut c = b;
             if c >= 0x80 {
                 bytes.push(b'M');
                 bytes.push(b'-');
@@ -42,7 +42,7 @@ impl Processor for ShowNonprinting {
                 _ => bytes.push(c),
             }
         }
-        unsafe { Some(String::from_utf8_unchecked(bytes)) }
+        Some(bytes)
     }
 }
 
@@ -54,25 +54,26 @@ mod tests {
     fn control_chars_are_carret_encoded() {
         let mut p = ShowNonprinting::new();
         assert_eq!(
-            p.proc(String::from("\x00\x01\x02\t\x1D\x1E\x1F\n\x7F")),
-            Some(String::from("^@^A^B\t^]^^^_\n^?"))
+            p.proc(vec![0x00, 0x01, 0x02, b'\t', 0x1D, 0x1E, 0x1F, b'\n', 0x7F]),
+            Some(Vec::from("^@^A^B\t^]^^^_\n^?".as_bytes()))
         );
     }
 
     #[test]
     fn normal_chars_are_left_in_place() {
         let mut p = ShowNonprinting::new();
-        let str = "A\ts1\n";
-        assert_eq!(p.proc(String::from(str)), Some(String::from(str)));
+        let str = Vec::from("A\ts1\n".as_bytes());
+        assert_eq!(p.proc(str.clone()), Some(str.clone()));
     }
 
     #[test]
     fn chars_above_0x80_are_metaencoded() {
         let mut p = ShowNonprinting::new();
 
-        unsafe {
-            let str = String::from_utf8_unchecked(vec![0x80, 0x81, 0x82, b'\t', 0xFD, 0xFE, 0xFF]);
-            assert_eq!(p.proc(str), Some(String::from("M-^@M-^AM-^B\tM-}M-~M-^?")));
-        }
+        let str = vec![0x80, 0x81, 0x82, b'\t', 0xFD, 0xFE, 0xFF];
+        assert_eq!(
+            p.proc(str.clone()),
+            Some(Vec::from("M-^@M-^AM-^B\tM-}M-~M-^?".as_bytes()))
+        );
     }
 }
