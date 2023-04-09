@@ -22,16 +22,18 @@ impl ShowNonprinting {
 }
 impl Processor for ShowNonprinting {
     fn proc(&mut self, line: Vec<u8>) -> Option<Vec<u8>> {
-        let mut bytes = Vec::new();
+        let mut bytes = Vec::with_capacity(line.len() * 4);
         for b in line {
             let mut c = b;
+            let mut meta = false;
             if c >= 0x80 {
+                meta = true;
                 bytes.push(b'M');
                 bytes.push(b'-');
                 c -= 0x80;
             }
             match c {
-                0x00..=0x1F if c != b'\t' && c != b'\n' => {
+                0x00..=0x1F if meta || (c != b'\t' && c != b'\n') => {
                     bytes.push(b'^');
                     bytes.push(c + 0x40);
                 }
@@ -75,5 +77,12 @@ mod tests {
             p.proc(str.clone()),
             Some(b"M-^@M-^AM-^B\tM-}M-~M-^?".to_vec())
         );
+    }
+
+    #[test]
+    fn tabs_and_newlines_plus80_metaecnoded() {
+        let mut p = ShowNonprinting::new();
+        let str = vec![b'\t', b'\n', b'\t' + 0x80, b'\n' + 0x80];
+        assert_eq!(p.proc(str), Some(b"\t\nM-^IM-^J".to_vec()));
     }
 }
