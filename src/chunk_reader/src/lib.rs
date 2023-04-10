@@ -1,4 +1,5 @@
-use std::io::{Read, Result};
+use std::io;
+use std::io::Read;
 
 /** Reading a chunk from a reader, until b'\n' is encountered or until chunk_size is met
  *
@@ -16,9 +17,9 @@ pub struct Chunked<B> {
 }
 
 impl<B: Read> Iterator for Chunked<B> {
-    type Item = Result<Vec<u8>>;
+    type Item = io::Result<Vec<u8>>;
 
-    fn next(&mut self) -> Option<Result<Vec<u8>>> {
+    fn next(&mut self) -> Option<io::Result<Vec<u8>>> {
         if self.done {
             return None;
         }
@@ -75,7 +76,7 @@ mod tests {
         let data = b"123b456bb";
         let cursor = Cursor::new(data);
 
-        let result: Result<Vec<Vec<u8>>> = cursor.chunks(b'b', 5).collect();
+        let result: io::Result<Vec<Vec<u8>>> = cursor.chunks(b'b', 5).collect();
         let matrix = result.unwrap();
 
         assert_eq!(
@@ -89,7 +90,7 @@ mod tests {
         let data = b"123b456789bb";
         let cursor = Cursor::new(data);
 
-        let result: Result<Vec<Vec<u8>>> = cursor.chunks(b'b', 5).collect();
+        let result: io::Result<Vec<Vec<u8>>> = cursor.chunks(b'b', 5).collect();
         let matrix = result.unwrap();
 
         assert_eq!(

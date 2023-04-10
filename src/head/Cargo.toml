@@ -15,3 +15,4 @@ With no FILE, or when FILE is -, read standard input.output the first part of fi
 [dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
 chunk_reader = { path = "../chunk_reader" }
+ibig = "0.3.6"

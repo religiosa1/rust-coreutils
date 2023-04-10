@@ -15,7 +15,7 @@ pub struct Args {
 
     /// print the first NUM lines instead of the first 10; with the leading '-', print all but the last NUM lines of each file
     #[arg(short = 'n', long, value_parser=parse_num, default_value = "10")]
-    pub lines: i32,
+    pub lines: NumValue,
 
     /// never print headers giving file names
     #[arg(short = 'q', long, visible_alias = "silent", default_value_t = false)]

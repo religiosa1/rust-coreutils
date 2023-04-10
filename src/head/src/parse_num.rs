@@ -2,18 +2,31 @@
 // NUM may have a multiplier suffix: b 512, kB 1000, K 1024, MB 1000*1000,  M  1024*1024,
 //  GB  1000*1000*1000,  G 1024*1024*1024, and so on for T, P, E, Z, Y.
 
+use ibig::UBig;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Multiplier {
-    Numeric(u32),
-    Pow(u32),
-    PowB10(u32),
+    Numeric(usize),
+    Pow(usize),
+    PowB10(usize),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct NumValue {
-    prefix: Option<char>,
-    value: usize,
-    multiplier: Option<Multiplier>,
+    pub prefix: Option<char>,
+    pub value: usize,
+    pub multiplier: Option<Multiplier>,
+}
+
+impl NumValue {
+    pub fn to_ubig(&self) -> UBig {
+        match self.multiplier {
+            None => UBig::from(self.value),
+            Some(Multiplier::Numeric(n)) => UBig::from(self.value) * n,
+            Some(Multiplier::Pow(n)) => UBig::from(self.value) * UBig::from(1024_usize).pow(n),
+            Some(Multiplier::PowB10(n)) => UBig::from(self.value) * UBig::from(1000_usize).pow(n),
+        }
+    }
 }
 
 pub fn parse_num(num: &str) -> Result<NumValue, String> {
@@ -91,11 +104,11 @@ mod tests {
             let str = mult.to_string();
             assert_eq!(
                 parse_multiplier(&str),
-                Ok(Some(Multiplier::Pow((i + 1) as u32)))
+                Ok(Some(Multiplier::Pow((i + 1) as usize)))
             );
             assert_eq!(
                 parse_multiplier(&(str + "B")),
-                Ok(Some(Multiplier::PowB10((i + 1) as u32)))
+                Ok(Some(Multiplier::PowB10((i + 1) as usize)))
             );
         }
     }
@@ -121,6 +134,7 @@ mod tests {
             parse_num("-123kB").unwrap().multiplier,
             Some(Multiplier::PowB10(1))
         );
+        // What about kb suffix?
         assert_eq!(
             parse_num("+321M").unwrap().multiplier,
             Some(Multiplier::Pow(2))

@@ -8,7 +8,7 @@ use std::io;
 fn main() -> io::Result<()> {
     let args = Args::parse();
     println!("{:?}", args);
-    let print_headers = args.file.len() > 1 || args.verbose;
+    let print_headers = (args.file.len() > 1 || args.verbose) && !args.quiet;
     for file in &args.file {
         if print_headers {
             print_header(&file);
