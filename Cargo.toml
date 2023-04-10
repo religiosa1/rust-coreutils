@@ -1,2 +1,9 @@
 [workspace]
-members = ["cat", "head"]
+members = ["src/cat", "src/chunk_reader", "src/head"]
+
+[profile.release]
+opt-level = 's'   # Optimize for size (with loop vectorization)
+lto = true        # Link-tree optimization (tree-shaking)
+codegen-units = 1 # Reduce number of codegen units
+panic = 'abort'   # Abort on panic
+strip = true      # Strip symbols from binaries

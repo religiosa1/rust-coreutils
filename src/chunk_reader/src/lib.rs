@@ -1,5 +1,12 @@
-/* Reading a chunk from a reader, until b'\n' is encountered or until CHUNK_SIZE is met */
 use std::io::{Read, Result};
+
+/** Reading a chunk from a reader, until b'\n' is encountered or until chunk_size is met
+ *
+ * Basically, the same as split() with a limit.
+ *
+ * Notice, that every byte is read with a separate call to read() function, so to avoid
+ * excessive system calls when reading from for example a file, don't forget to use BufReader
+ */
 
 pub struct Chunked<B> {
     inner: B,

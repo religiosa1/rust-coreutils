@@ -52,6 +52,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 name = "cat"
 version = "0.1.0"
 dependencies = [
+ "chunk_reader",
  "clap",
 ]
 
@@ -60,6 +61,10 @@ name = "cc"
 version = "1.0.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "50d30906286121d95be3d479533b458f87493b30a4b5f79a607db8f5d11aa91f"
+
+[[package]]
+name = "chunk_reader"
+version = "0.1.0"
 
 [[package]]
 name = "clap"
@@ -143,6 +148,7 @@ dependencies = [
 name = "head"
 version = "0.1.0"
 dependencies = [
+ "chunk_reader",
  "clap",
 ]
 

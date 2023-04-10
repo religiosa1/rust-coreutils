@@ -1,5 +1,4 @@
 mod args;
-mod chunked;
 mod proc;
 
 use std::fs::File;
@@ -8,7 +7,7 @@ use std::io::prelude::*;
 use std::io::BufReader;
 
 use args::Args;
-use chunked::ChunkReader;
+use chunk_reader::ChunkReader;
 use proc::ProcessorDirector;
 
 fn main() -> io::Result<()> {

@@ -1,3 +1,4 @@
+use crate::parse_num::{parse_num, NumValue};
 use clap::Parser;
 
 // @see https://docs.rs/clap/latest/clap/_derive/_tutorial/index.html
@@ -9,12 +10,12 @@ pub struct Args {
     pub file: Vec<String>,
 
     /// print the first NUM bytes of each file; with the leading '-', print all but the last NUM bytes of each file
-    #[arg(short = 'c')]
-    pub bytes: Option<String>,
+    #[arg(short = 'c', long, value_parser=parse_num)]
+    pub bytes: Option<NumValue>,
 
     /// print the first NUM lines instead of the first 10; with the leading '-', print all but the last NUM lines of each file
-    #[arg(short = 'n', long, default_value = "10")]
-    pub lines: String,
+    #[arg(short = 'n', long, value_parser=parse_num, default_value = "10")]
+    pub lines: i32,
 
     /// never print headers giving file names
     #[arg(short = 'q', long, visible_alias = "silent", default_value_t = false)]
@@ -29,7 +30,12 @@ pub struct Args {
     pub zero_terminated: bool,
 }
 
-fn main() {
-    let args = Args::parse();
-    println!("{:?}", args);
+impl Args {
+    pub fn parse() -> Args {
+        let mut args = <Self as Parser>::parse();
+        if args.file.len() == 0 {
+            args.file.push("-".into());
+        }
+        args
+    }
 }
