@@ -23,7 +23,12 @@ impl<B: Read> Iterator for Chunked<B> {
         if self.done {
             return None;
         }
-        let mut retval: Vec<u8> = Vec::with_capacity(self.chunk_size);
+        let capacity = if self.chunk_size > 0 {
+            self.chunk_size
+        } else {
+            0
+        };
+        let mut retval: Vec<u8> = Vec::with_capacity(capacity);
 
         loop {
             let mut buf = [0; 1];
@@ -39,7 +44,7 @@ impl<B: Read> Iterator for Chunked<B> {
                 Ok(_) => {
                     let b = buf[0];
                     retval.push(b);
-                    if b == self.delim || retval.len() >= self.chunk_size {
+                    if b == self.delim || (self.chunk_size > 0 && retval.len() >= self.chunk_size) {
                         return Some(Ok(retval));
                     }
                 }
@@ -101,6 +106,20 @@ mod tests {
                 b"9b".to_vec(),
                 b"b".to_vec()
             ]
+        );
+    }
+
+    #[test]
+    fn zero_chunk_size_means_unlimited_chunk() {
+        let data = b"123b456789bb";
+        let cursor = Cursor::new(data);
+
+        let result: io::Result<Vec<Vec<u8>>> = cursor.chunks(b'b', 0).collect();
+        let matrix = result.unwrap();
+
+        assert_eq!(
+            matrix,
+            vec![b"123b".to_vec(), b"456789b".to_vec(), b"b".to_vec()]
         );
     }
 }
