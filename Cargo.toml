@@ -1,5 +1,5 @@
 [workspace]
-members = ["src/cat", "src/chunk_reader", "src/head"]
+members = ["utils/cat", "utils/head", "lib/chunk_reader", "lib/parse_num"]
 
 [profile.release]
 opt-level = 's'   # Optimize for size (with loop vectorization)

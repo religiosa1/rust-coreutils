@@ -1,4 +1,5 @@
-use crate::{args::Args, parse_num::NumValue};
+use crate::args::Args;
+use parse_num::NumValue;
 
 mod head_bytes;
 pub mod head_error;

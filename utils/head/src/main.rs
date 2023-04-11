@@ -1,6 +1,5 @@
 mod args;
 mod head;
-mod parse_num;
 use args::Args;
 use head::head;
 use head::head_error::HeadError;
