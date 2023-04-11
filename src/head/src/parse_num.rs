@@ -1,6 +1,6 @@
 // Implementation of coreutils NUM parsing, aka xdectoint()
-// NUM may have a multiplier suffix: b 512, kB 1000, K 1024, MB 1000*1000,  M  1024*1024,
-//  GB  1000*1000*1000,  G 1024*1024*1024, and so on for T, P, E, Z, Y.
+// NUM may have a multiplier suffix: b 512, kB 1000, K 1024, MB 1000*1000, M 1024*1024,
+// GB 1000*1000*1000, G 1024*1024*1024, and so on for T, P, E, Z, Y.
 
 use ibig::UBig;
 
@@ -91,6 +91,11 @@ fn parse_multiplier(mult: &str) -> Result<Option<Multiplier>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn numvalue_to_ubig() {
+        todo!();
+    }
 
     #[test]
     fn parse_multiplier_returns_correct_result() {
