@@ -3,9 +3,9 @@ mod head;
 mod parse_num;
 use args::Args;
 use head::head;
-use std::io;
+use head::head_error::HeadError;
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), HeadError> {
     let args = Args::parse();
     println!("{:?}", args);
     let print_headers = (args.file.len() > 1 || args.verbose) && !args.quiet;

@@ -1,9 +1,11 @@
 use crate::args::Args;
 use chunk_reader::ChunkReader;
 use ibig::UBig;
-use std::io::{Read, Result, Write};
+use std::io::{Read, Write};
 
-pub fn head_lines<R: Read>(args: &Args, input: R) -> Result<()> {
+use super::head_error::HeadError;
+
+pub fn head_lines<R: Read>(args: &Args, input: R) -> Result<(), HeadError> {
     let mut counter = UBig::from(0_usize);
     let max = args.lines.to_ubig();
     for chunk in input.chunks(b'\n', 8192) {

@@ -6,9 +6,9 @@ use ibig::UBig;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Multiplier {
-    Numeric(usize),
-    Pow(usize),
-    PowB10(usize),
+    Numeric(u32),
+    Pow(u32),
+    PowB10(u32),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -23,9 +23,27 @@ impl NumValue {
         match self.multiplier {
             None => UBig::from(self.value),
             Some(Multiplier::Numeric(n)) => UBig::from(self.value) * n,
-            Some(Multiplier::Pow(n)) => UBig::from(self.value) * UBig::from(1024_usize).pow(n),
-            Some(Multiplier::PowB10(n)) => UBig::from(self.value) * UBig::from(1000_usize).pow(n),
+            Some(Multiplier::Pow(n)) => {
+                UBig::from(self.value) * UBig::from(1024_usize).pow(n as usize)
+            }
+            Some(Multiplier::PowB10(n)) => {
+                UBig::from(self.value) * UBig::from(1000_usize).pow(n as usize)
+            }
         }
+    }
+
+    pub fn to_usize(&self) -> Result<usize, String> {
+        match self.multiplier {
+            None => Some(self.value),
+            Some(Multiplier::Numeric(n)) => self.value.checked_mul(n as usize),
+            Some(Multiplier::Pow(n)) => 1024_usize
+                .checked_pow(n)
+                .and_then(|m| self.value.checked_mul(m)),
+            Some(Multiplier::PowB10(n)) => 1000_usize
+                .checked_pow(n)
+                .and_then(|mul| self.value.checked_mul(mul)),
+        }
+        .ok_or("Value too large for defined data type".to_string())
     }
 }
 
@@ -109,11 +127,11 @@ mod tests {
             let str = mult.to_string();
             assert_eq!(
                 parse_multiplier(&str),
-                Ok(Some(Multiplier::Pow((i + 1) as usize)))
+                Ok(Some(Multiplier::Pow((i + 1) as u32)))
             );
             assert_eq!(
                 parse_multiplier(&(str + "B")),
-                Ok(Some(Multiplier::PowB10((i + 1) as usize)))
+                Ok(Some(Multiplier::PowB10((i + 1) as u32)))
             );
         }
     }
