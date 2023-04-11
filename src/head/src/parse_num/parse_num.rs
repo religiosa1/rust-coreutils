@@ -2,6 +2,7 @@
 // NUM may have a multiplier suffix: b 512, kB 1000, K 1024, MB 1000*1000, M 1024*1024,
 // GB 1000*1000*1000, G 1024*1024*1024, and so on for T, P, E, Z, Y.
 
+use super::ParseNumError;
 use ibig::UBig;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -32,7 +33,7 @@ impl NumValue {
         }
     }
 
-    pub fn to_usize(&self) -> Result<usize, String> {
+    pub fn to_usize(&self) -> Option<usize> {
         match self.multiplier {
             None => Some(self.value),
             Some(Multiplier::Numeric(n)) => self.value.checked_mul(n as usize),
@@ -43,16 +44,15 @@ impl NumValue {
                 .checked_pow(n)
                 .and_then(|mul| self.value.checked_mul(mul)),
         }
-        .ok_or("Value too large for defined data type".to_string())
     }
 }
 
-pub fn parse_num(num: &str) -> Result<NumValue, String> {
+pub fn parse_num(num: &str) -> Result<NumValue, ParseNumError> {
     let prefix = match num.chars().next() {
         Some('-') => Some('-'),
         Some('+') => Some('+'),
         Some(_) => None,
-        None => return Err("Empty string as num".to_string()),
+        None => return Err(ParseNumError::Empty),
     };
     let value_start_index = if let Some(_) = prefix { 1 } else { 0 };
     let value_end_index = num[value_start_index..]
@@ -63,7 +63,7 @@ pub fn parse_num(num: &str) -> Result<NumValue, String> {
         .unwrap_or(num.len());
     let value: usize = num[value_start_index..value_end_index]
         .parse()
-        .map_err(|_| "bad numeric value".to_string())?;
+        .map_err(|_| ParseNumError::BadNumericValue)?;
     let multiplier = parse_multiplier(&num[value_end_index..])?;
 
     Ok(NumValue {
@@ -73,12 +73,12 @@ pub fn parse_num(num: &str) -> Result<NumValue, String> {
     })
 }
 
-fn parse_multiplier(mult: &str) -> Result<Option<Multiplier>, String> {
+fn parse_multiplier(mult: &str) -> Result<Option<Multiplier>, ParseNumError> {
     if mult.len() == 0 {
         return Ok(None);
     }
     if mult.len() > 2 {
-        return Err("bad multiplier value".to_string());
+        return Err(ParseNumError::BadMultiplierValue(3));
     }
 
     let mut chars = mult.chars();
@@ -94,15 +94,16 @@ fn parse_multiplier(mult: &str) -> Result<Option<Multiplier>, String> {
                 'E' => Ok(6),
                 'Z' => Ok(7),
                 'Y' => Ok(8),
-                _ => Err("bad multiplier value".to_string()),
+                _ => Err(ParseNumError::BadMultiplierValue(1)),
             }?;
             match chars.next() {
+                // lowercase 'b' isn't considered a valid suffix for some reason in the GNU implementation
                 Some('B') => Ok(Some(Multiplier::PowB10(val))),
-                Some(_) => Err("bad multiplier value".to_string()),
+                Some(_) => Err(ParseNumError::BadMultiplierValue(2)),
                 None => Ok(Some(Multiplier::Pow(val))),
             }
         }
-        None => Err("bad multiplier value".to_string()),
+        None => Err(ParseNumError::BadMultiplierValue(0)),
     }
 }
 
@@ -112,6 +113,46 @@ mod tests {
 
     #[test]
     fn numvalue_to_ubig() {
+        assert_eq!(
+            NumValue {
+                prefix: None,
+                value: 3,
+                multiplier: None
+            }
+            .to_ubig(),
+            UBig::from(3_u32)
+        );
+        assert_eq!(
+            NumValue {
+                prefix: None,
+                value: 3,
+                multiplier: Some(Multiplier::Numeric(3))
+            }
+            .to_ubig(),
+            UBig::from(9_u32)
+        );
+        assert_eq!(
+            NumValue {
+                prefix: None,
+                value: 3,
+                multiplier: Some(Multiplier::Pow(3))
+            }
+            .to_ubig(),
+            UBig::from(3_u32 * 1024_u32.pow(3))
+        );
+        assert_eq!(
+            NumValue {
+                prefix: None,
+                value: 3,
+                multiplier: Some(Multiplier::PowB10(3))
+            }
+            .to_ubig(),
+            UBig::from(3_u32 * 1000_u32.pow(3))
+        );
+    }
+
+    #[test]
+    fn numvalue_to_usize() {
         todo!();
     }
 
@@ -119,7 +160,7 @@ mod tests {
     fn parse_multiplier_returns_correct_result() {
         assert_eq!(
             parse_multiplier("zxc"),
-            Err("bad multiplier value".to_string())
+            Err(ParseNumError::BadMultiplierValue(3))
         );
         assert_eq!(parse_multiplier("b"), Ok(Some(Multiplier::Numeric(512))));
         // should just "B" be equal to 512 too?..
@@ -141,7 +182,7 @@ mod tests {
         assert_eq!(parse_num("-123").unwrap().prefix, Some('-'));
         assert_eq!(parse_num("+123").unwrap().prefix, Some('+'));
         assert_eq!(parse_num("123").unwrap().prefix, None);
-        assert_eq!(parse_num("a"), Err(String::from("bad numeric value")));
+        assert_eq!(parse_num("a"), Err(ParseNumError::BadNumericValue));
     }
 
     #[test]
@@ -154,10 +195,21 @@ mod tests {
     #[test]
     fn parse_num_correctly_parses_suffix() {
         assert_eq!(
+            parse_num("-123a"),
+            Err(ParseNumError::BadMultiplierValue(1)),
+        );
+        assert_eq!(
+            parse_num("-123Kb"),
+            Err(ParseNumError::BadMultiplierValue(2)),
+        );
+        assert_eq!(
+            parse_num("-123kBs"),
+            Err(ParseNumError::BadMultiplierValue(3)),
+        );
+        assert_eq!(
             parse_num("-123kB").unwrap().multiplier,
             Some(Multiplier::PowB10(1))
         );
-        // What about kb suffix?
         assert_eq!(
             parse_num("+321M").unwrap().multiplier,
             Some(Multiplier::Pow(2))
