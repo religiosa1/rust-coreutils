@@ -1,0 +1,19 @@
+[package]
+name = "tail"
+version = "0.1.0"
+edition = "2021"
+description = """
+Print  the last 10 lines of each FILE to standard output.
+With more than one FILE, precede each with a header giving the file name.
+
+With no FILE, or when FILE is -, read standard input.
+"""
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.1.8", features = ["derive"] }
+ibig = "0.3.6"
+notify = "5.1.0"
+chunk_reader = { path = "../../lib/chunk_reader" }
+parse_num = { path = "../../lib/parse_num" }

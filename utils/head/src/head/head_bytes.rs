@@ -12,13 +12,15 @@ pub fn head_bytes<R: Read>(args: &Args, mut input: R) -> Result<(), HeadError> {
     let (n_full_chunks, partial_read) = max.div_rem(CHUNK_SIZE);
     let mut counter = UBig::from(0_usize);
 
-    while counter < n_full_chunks {
-        let bytes_read = input.read(&mut buffer)?;
-        counter += 1;
-        if bytes_read == 0 {
-            return Ok(());
+    if n_full_chunks > UBig::from(0_usize) {
+        while counter < n_full_chunks {
+            let bytes_read = input.read(&mut buffer)?;
+            counter += 1;
+            if bytes_read == 0 {
+                return Ok(());
+            }
+            std::io::stdout().write(&buffer[..bytes_read])?;
         }
-        std::io::stdout().write(&buffer[..bytes_read])?;
     }
     if partial_read > 0 {
         let bytes_read = input.read(&mut buffer[..partial_read])?;
