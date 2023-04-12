@@ -18,6 +18,9 @@ use std::io::BufReader;
 use tail_error::TailError;
 
 pub fn tail(args: &Args, name: &str) -> Result<(), TailError> {
+    if args.print_headers {
+        print_header(&name);
+    }
     let input: Box<dyn Read> = match name {
         "-" => Box::new(io::stdin()),
         _ => {
@@ -43,4 +46,12 @@ pub fn tail(args: &Args, name: &str) -> Result<(), TailError> {
         } => tail_negative_lines(args, reader),
         _ => tail_lines(args, reader),
     }
+}
+
+fn print_header(name: &str) {
+    let name = match name {
+        "-" => "standard input",
+        _ => name,
+    };
+    println!("==> {} <==", name);
 }

@@ -15,5 +15,6 @@ With no FILE, or when FILE is -, read standard input.
 clap = { version = "4.1.8", features = ["derive"] }
 ibig = "0.3.6"
 notify = "5.1.0"
+ctrlc = "3.2.5"
 chunk_reader = { path = "../../lib/chunk_reader" }
 parse_num = { path = "../../lib/parse_num" }
