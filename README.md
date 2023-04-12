@@ -17,10 +17,11 @@ of standard library as much as possible.
 
 ## Current progress:
 
-| Binary | Status      | Comments                          |
-| ------ | ----------- | --------------------------------- |
-| cat    | + Completed |                                   |
-| head   | + Completed | Test and optimisation are pending |
+| Binary                | Status      | Comments                                           |
+| --------------------- | ----------- | -------------------------------------------------- |
+| [cat](./utils/cat/)   | + Completed |                                                    |
+| [head](./utils/tail/) | + Completed | Test and optimisation are pending                  |
+| [tail](./utils/tail/) | - WIP       | Follow and PID behavior waiting for implementation |
 
 ## Repo structure
 ```
