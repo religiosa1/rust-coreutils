@@ -7,7 +7,7 @@ pub enum Multiplier {
     PowB10(u32),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct NumValue {
     pub prefix: Option<char>,
     pub value: usize,
