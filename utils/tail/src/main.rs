@@ -1,8 +1,8 @@
 mod args;
 mod follow;
+mod pid;
 mod tail;
 
-use smol;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {

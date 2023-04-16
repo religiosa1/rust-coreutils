@@ -1,7 +1,7 @@
 use ctrlc::set_handler;
 use futures::{
     channel::mpsc::{channel, Receiver},
-    SinkExt, StreamExt,
+    select, SinkExt, StreamExt,
 };
 
 use notify::{
@@ -13,21 +13,26 @@ use std::path::Path;
 use crate::args::Args;
 use crate::tail::tail;
 
-use futures::future;
+use futures::FutureExt;
 use smol::Timer;
 use std::time::Duration;
+
+use crate::pid::check_pid;
 
 pub async fn follow(args: &Args) -> Result<(), Box<dyn Error>> {
     set_handler(move || {
         std::process::exit(0);
     })
     .unwrap();
+    for file in &args.file {
+        // Imediately output file's tail on first launch
+        tail(&args, file)?;
+    }
     if let Some(_) = args.pid {
-        let pid_poller = poll_pid(&args);
-        let fs_events = listen_to_fs_event(&args);
-
-        let (_, result_fs) = future::join(pid_poller, fs_events).await;
-        result_fs?;
+        select! {
+            r = poll_pid(&args).fuse() => r?,
+            r = listen_to_fs_event(&args).fuse() => r?,
+        }
     } else {
         listen_to_fs_event(&args).await?;
     }
@@ -35,10 +40,12 @@ pub async fn follow(args: &Args) -> Result<(), Box<dyn Error>> {
 }
 
 async fn poll_pid(args: &Args) -> Result<(), Box<dyn Error>> {
-    loop {
-        Timer::interval(Duration::from_secs_f32(args.sleep_interval)).await;
-        check_pid().await;
+    let period = Duration::from_secs_f32(args.sleep_interval);
+    let pid = args.pid.unwrap();
+    while check_pid(pid) {
+        Timer::interval(period).await;
     }
+    Ok(())
 }
 
 async fn listen_to_fs_event(args: &Args) -> Result<(), Box<dyn Error>> {
@@ -46,8 +53,6 @@ async fn listen_to_fs_event(args: &Args) -> Result<(), Box<dyn Error>> {
 
     for file in &args.file {
         watcher.watch(Path::new(file), RecursiveMode::NonRecursive)?;
-        // Imediately output file's tail on first launch
-        tail(&args, file)?;
     }
     while let Some(res) = rx.next().await {
         match res {
@@ -80,9 +85,4 @@ fn async_watcher() -> notify::Result<(RecommendedWatcher, Receiver<notify::Resul
     )?;
 
     Ok((watcher, rx))
-}
-
-async fn check_pid() {
-    // Do something here...
-    println!("Hello from pid action!");
 }
