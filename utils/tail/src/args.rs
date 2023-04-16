@@ -22,7 +22,13 @@ pub struct Args {
     pub bytes: Option<NumValue>,
 
     /// output appended data as the file grows
-    #[arg(short = 'f', long, value_enum)]
+    #[arg(
+        short = 'f',
+        long,
+        num_args = 0..=1,
+        require_equals = true,
+        value_enum,
+    )]
     pub follow: Option<FollowMode>,
 
     /// same as --follow=name --retry
@@ -42,7 +48,7 @@ pub struct Args {
     pub quiet: bool,
 
     /// keep trying to open a file if it is inaccessible
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, requires = "follow")]
     pub retry: bool,
 
     /// with --pid=P check process P at least once every N seconds

@@ -53,14 +53,9 @@ async fn listen_to_fs_event(args: &Args) -> Result<(), Box<dyn Error>> {
         match res {
             Ok(event) => {
                 if let EventKind::Modify(ModifyKind::Any) = event.kind {
-                    if let Some(pb) = event.paths.first() {
-                        if let Some(name) = pb.to_str() {
-                            // TODO normalize name to the initial
-                            tail(&args, name)?;
-                        // rewrite this bullshit
-                        } else {
-                            eprintln!("Empty file name in event");
-                        }
+                    let first_path = event.paths.first().and_then(|pb| pb.to_str());
+                    if let Some(name) = first_path {
+                        tail(&args, name)?;
                     } else {
                         eprintln!("Empty file name in event");
                     }

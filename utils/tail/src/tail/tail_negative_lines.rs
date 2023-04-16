@@ -21,6 +21,5 @@ pub fn tail_negative_lines<R: Read>(args: &Args, input: R) -> Result<(), TailErr
             std::io::stdout().write(&chunk)?;
         }
     }
-    std::io::stdout().flush()?;
     Ok(())
 }

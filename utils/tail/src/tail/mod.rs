@@ -45,7 +45,9 @@ pub fn tail(args: &Args, name: &str) -> Result<(), TailError> {
             ..
         } => tail_negative_lines(args, reader),
         _ => tail_lines(args, reader),
-    }
+    }?;
+    std::io::stdout().flush()?;
+    Ok(())
 }
 
 fn print_header(name: &str) {

@@ -25,6 +25,5 @@ pub fn tail_negative_bytes<R: Read>(args: &Args, mut input: R) -> Result<(), Tai
         let chunk = chunk?;
         std::io::stdout().write(&chunk)?;
     }
-    std::io::stdout().flush()?;
     Ok(())
 }
