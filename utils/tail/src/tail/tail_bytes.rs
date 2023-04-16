@@ -8,6 +8,7 @@ pub fn tail_bytes<R: BufRead>(args: &Args, input: R) -> Result<(), TailError> {
     let (slice1, slice2) = bytes.as_slices();
     std::io::stdout().write(slice1)?;
     std::io::stdout().write(slice2)?;
+    std::io::stdout().flush()?;
     Ok(())
 }
 

@@ -10,6 +10,7 @@ pub fn tail_lines<R: Read>(args: &Args, input: R) -> Result<(), TailError> {
     for line in lines {
         std::io::stdout().write(&line)?;
     }
+    std::io::stdout().flush()?;
     Ok(())
 }
 

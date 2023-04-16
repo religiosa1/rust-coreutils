@@ -1,30 +1,57 @@
 use ctrlc::set_handler;
-use notify::event::ModifyKind;
-use notify::{EventKind, RecursiveMode, Watcher};
+use futures::{
+    channel::mpsc::{channel, Receiver},
+    SinkExt, StreamExt,
+};
+
+use notify::{
+    event::ModifyKind, Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
+};
 use std::error::Error;
 use std::path::Path;
-use std::sync::mpsc::channel;
 
 use crate::args::Args;
 use crate::tail::tail;
 
-pub fn follow(args: &Args) -> Result<(), Box<dyn Error>> {
-    let (tx, rx) = channel();
-    let mut watcher = notify::recommended_watcher(tx)?;
-    for file in &args.file {
-        watcher.watch(Path::new(file), RecursiveMode::NonRecursive)?;
-        tail(&args, file)?;
-    }
+use futures::future;
+use smol::Timer;
+use std::time::Duration;
 
-    // Set up a Ctrl-C handler to stop the watcher
+pub async fn follow(args: &Args) -> Result<(), Box<dyn Error>> {
     set_handler(move || {
         std::process::exit(0);
     })
     .unwrap();
+    if let Some(_) = args.pid {
+        let pid_poller = poll_pid(&args);
+        let fs_events = listen_to_fs_event(&args);
 
+        let (_, result_fs) = future::join(pid_poller, fs_events).await;
+        result_fs?;
+    } else {
+        listen_to_fs_event(&args).await?;
+    }
+    Ok(())
+}
+
+async fn poll_pid(args: &Args) -> Result<(), Box<dyn Error>> {
     loop {
-        match rx.recv() {
-            Ok(Ok(event)) => {
+        Timer::interval(Duration::from_secs_f32(args.sleep_interval)).await;
+        check_pid().await;
+    }
+}
+
+async fn listen_to_fs_event(args: &Args) -> Result<(), Box<dyn Error>> {
+    let (mut watcher, mut rx) = async_watcher()?;
+
+    for file in &args.file {
+        watcher.watch(Path::new(file), RecursiveMode::NonRecursive)?;
+        // Imediately output file's tail on first launch
+        tail(&args, file)?;
+    }
+    while let Some(res) = rx.next().await {
+        match res {
+            Ok(event) => {
                 if let EventKind::Modify(ModifyKind::Any) = event.kind {
                     if let Some(pb) = event.paths.first() {
                         if let Some(name) = pb.to_str() {
@@ -39,8 +66,28 @@ pub fn follow(args: &Args) -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-            Ok(Err(e)) => eprintln!("watch error: {:?}", e),
-            Err(e) => eprintln!("signal error: {:?}", e),
-        };
+            Err(e) => println!("watch error: {:?}", e),
+        }
     }
+    Ok(())
+}
+
+fn async_watcher() -> notify::Result<(RecommendedWatcher, Receiver<notify::Result<Event>>)> {
+    let (mut tx, rx) = channel(1);
+
+    let watcher = RecommendedWatcher::new(
+        move |res| {
+            futures::executor::block_on(async {
+                tx.send(res).await.unwrap();
+            })
+        },
+        Config::default(),
+    )?;
+
+    Ok((watcher, rx))
+}
+
+async fn check_pid() {
+    // Do something here...
+    println!("Hello from pid action!");
 }

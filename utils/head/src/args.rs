@@ -3,7 +3,7 @@ use parse_num::{parse_num, NumValue};
 
 // @see https://docs.rs/clap/latest/clap/_derive/_tutorial/index.html
 
-/// output the first part of files
+/// output the last part of files
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about)]
 pub struct Args {

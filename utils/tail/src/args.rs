@@ -34,8 +34,8 @@ pub struct Args {
     pub lines: NumValue,
 
     /// with -f, terminate after process ID, PID dies
-    #[arg(long, default_value_t = true)]
-    pub pid: bool,
+    #[arg(long)]
+    pub pid: Option<u32>,
 
     /// never print headers giving file names
     #[arg(short = 'q', long, visible_alias = "silent", default_value_t = false)]
