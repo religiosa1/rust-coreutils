@@ -36,8 +36,3 @@ to track them by name anyway for the logrotate cases (hence the special -F flag
 in the original GNU implementation). As the `notify` crate doesn't reliably
 inform us about the file renames, neither we have a file descriptor available there
 (unless I missed something in the crate documentation), this functionality is omited
-
-### ---pid functionality is nix-only
-Though it's probably possible to achieve the desired funcitonality on windows too
-using the winapi, it isn't included in the current version, so the PID flag
-is only abailable on MacOS and Linux (nix versions)

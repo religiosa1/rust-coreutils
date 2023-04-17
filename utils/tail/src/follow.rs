@@ -17,7 +17,7 @@ use futures::FutureExt;
 use smol::Timer;
 use std::time::Duration;
 
-use crate::pid::check_pid;
+use crate::pid::PidChecker;
 
 pub async fn follow(args: &Args) -> Result<(), Box<dyn Error>> {
     set_handler(move || {
@@ -41,8 +41,8 @@ pub async fn follow(args: &Args) -> Result<(), Box<dyn Error>> {
 
 async fn poll_pid(args: &Args) -> Result<(), Box<dyn Error>> {
     let period = Duration::from_secs_f32(args.sleep_interval);
-    let pid = args.pid.unwrap();
-    while check_pid(pid) {
+    let checker = PidChecker::new(args.pid.unwrap()).unwrap();
+    while checker.check_pid() {
         Timer::interval(period).await;
     }
     Ok(())
