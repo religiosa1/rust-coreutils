@@ -17,11 +17,13 @@ of standard library as much as possible.
 
 ## Current progress:
 
-| Binary                | Status      | Comments                                           |
-| --------------------- | ----------- | -------------------------------------------------- |
-| [cat](./utils/cat/)   | + Completed |                                                    |
-| [head](./utils/tail/) | + Completed | Test and optimisation are pending                  |
-| [tail](./utils/tail/) | - WIP       | Follow and PID behavior waiting for implementation |
+| Binary                    | Status      | Comments                                           |
+| ------------------------- | ----------- | -------------------------------------------------- |
+| [base32](./utils/base32/) | - WIP       |                                                    |
+| [base64](./utils/base64/) | - WIP       |                                                    |
+| [cat](./utils/cat/)       | + Completed |                                                    |
+| [head](./utils/tail/)     | + Completed | Test and optimisation are pending                  |
+| [tail](./utils/tail/)     | - WIP       | Follow and PID behavior waiting for implementation |
 
 ## Repo structure
 ```

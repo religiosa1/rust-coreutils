@@ -1,5 +1,7 @@
 [workspace]
 members = [
+  "utils/base32",
+  "utils/base64",
   "utils/cat",
   "utils/head",
   "utils/tail",
