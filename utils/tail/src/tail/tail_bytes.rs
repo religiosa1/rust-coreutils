@@ -21,10 +21,10 @@ pub fn get_bytes<R: BufRead>(args: &Args, input: R) -> Result<VecDeque<u8>, Tail
     let mut bytes: VecDeque<u8> = VecDeque::with_capacity(n);
     for byte in input.bytes() {
         let byte = byte?;
-        bytes.push_back(byte);
-        if bytes.len() > n {
+        if bytes.len() >= n {
             bytes.pop_front();
         }
+        bytes.push_back(byte);
     }
     Ok(bytes)
 }

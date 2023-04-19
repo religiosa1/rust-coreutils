@@ -19,10 +19,10 @@ fn get_lines<R: Read>(args: &Args, input: R) -> Result<VecDeque<Vec<u8>>, TailEr
 
     for line in input.chunks(args.terminator, 0) {
         let line = line?;
-        q.push_back(line);
-        if q.len() > n {
+        if q.len() >= n {
             q.pop_front();
         }
+        q.push_back(line);
     }
     Ok(q)
 }
