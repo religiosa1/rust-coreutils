@@ -25,24 +25,25 @@ impl Encoder {
 impl Proc for Encoder {
     fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<()> {
         let mut writer = wrapped_writer::WrappedWriter::new(output, self.wrap);
-        let mut remainder = 0;
+        let mut bytes_read_in_chunk = 0;
         loop {
-            let bytes_read = input.read(&mut self.buf[remainder..])?;
-            remainder = BUF_SIZE - bytes_read;
+            let bytes_read = input.read(&mut self.buf[bytes_read_in_chunk..])?;
             if bytes_read == 0 {
                 break;
             }
-            if remainder == 0 {
+            bytes_read_in_chunk += bytes_read;
+            if bytes_read_in_chunk == 5 {
                 let bytes_converted =
                     encode_chunk(&RFC4648_ALPHABET, &self.buf, &mut self.output_buf);
                 writer.write(&self.output_buf[..bytes_converted])?;
+                bytes_read_in_chunk = 0;
             }
         }
         // If we have partially filled buffer, we need to get it out anyway.
-        if remainder != 0 {
+        if bytes_read_in_chunk != 0 {
             let bytes_converted = encode_chunk(
                 &RFC4648_ALPHABET,
-                &self.buf[..remainder],
+                &self.buf[..bytes_read_in_chunk],
                 &mut self.output_buf,
             );
             writer.write(&self.output_buf[..bytes_converted])?;
