@@ -1,9 +1,10 @@
 use crate::alphabet::{Alphabet, RFC4648_ALPHABET};
 use crate::{args::Args, proc::Proc};
 use std::io::{Read, Result, Write};
-const BUF_SIZE: usize = 8192;
-// BUF_SIZE increased by 1.6 and shifted to the next multiple of 8
-const OUT_BUF_SIZE: usize = (BUF_SIZE / 10 * 16 + 8) & !7;
+
+const BUF_SIZE: usize = 5;
+const OUT_BUF_SIZE: usize = ((BUF_SIZE / 5 * 8 + 7) & !7) * 2;
+
 pub struct Encoder {
     buf: [u8; BUF_SIZE],
     output_buf: [u8; OUT_BUF_SIZE],
@@ -12,10 +13,11 @@ pub struct Encoder {
 
 impl Encoder {
     pub fn new(args: &Args) -> Encoder {
+        let wrap: usize = args.wrap.try_into().unwrap();
         Encoder {
             buf: [0_u8; BUF_SIZE],
             output_buf: [0_u8; OUT_BUF_SIZE],
-            wrap: args.wrap.try_into().unwrap(),
+            wrap: wrap,
         }
     }
 }
@@ -23,22 +25,26 @@ impl Encoder {
 impl Proc for Encoder {
     fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<()> {
         let mut writer = wrapped_writer::WrappedWriter::new(output, self.wrap);
+        let mut remainder = 0;
         loop {
-            let bytes_read = input.read(&mut self.buf)?;
-            let mut bytes_converted = 0_usize;
+            let bytes_read = input.read(&mut self.buf[remainder..])?;
+            remainder = BUF_SIZE - bytes_read;
             if bytes_read == 0 {
                 break;
             }
-            for chunk in self.buf.chunks(5) {
-                // TODO check that chunks has 5 bytes and it's not the end of the file
-                // (so we add padding only when it's needed)
-                let n_bytes = encode_chunk(
-                    &RFC4648_ALPHABET,
-                    chunk,
-                    &mut self.output_buf[bytes_converted..],
-                );
-                bytes_converted += n_bytes;
+            if remainder == 0 {
+                let bytes_converted =
+                    encode_chunk(&RFC4648_ALPHABET, &self.buf, &mut self.output_buf);
+                writer.write(&self.output_buf[..bytes_converted])?;
             }
+        }
+        // If we have partially filled buffer, we need to get it out anyway.
+        if remainder != 0 {
+            let bytes_converted = encode_chunk(
+                &RFC4648_ALPHABET,
+                &self.buf[..remainder],
+                &mut self.output_buf,
+            );
             writer.write(&self.output_buf[..bytes_converted])?;
         }
         Ok(())

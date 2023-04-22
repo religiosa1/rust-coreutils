@@ -3,13 +3,13 @@ use std::io::{Read, Result, Write};
 
 pub struct Decoder;
 impl Decoder {
-    pub fn new(args: &Args) -> Decoder {
+    pub fn new(_args: &Args) -> Decoder {
         Decoder
     }
 }
 
 impl Proc for Decoder {
-    fn proc(&mut self, input: &mut dyn Read, write: &mut dyn Write) -> Result<()> {
+    fn proc(&mut self, _input: &mut dyn Read, _write: &mut dyn Write) -> Result<()> {
         todo!();
     }
 }
