@@ -24,38 +24,18 @@ impl Encoder {
 
 impl Proc for Encoder {
     fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<()> {
-        let mut remainder = 0_usize;
+        let mut writer = wrapped_writer::WrappedWriter::new(output, self.wrap);
+
         loop {
             let bytes_read = input.read(&mut self.buf)?;
             if bytes_read == 0 {
                 break;
             }
+            // TODO Check the padding stuff between two iterations!!!
             let bytes_converted = general_purpose::STANDARD
                 .encode_slice(&self.buf[..bytes_read], &mut self.output_buf)
                 .unwrap();
-            if self.wrap == 0 {
-                output.write(&self.output_buf[..bytes_converted])?;
-            } else {
-                if bytes_converted <= remainder {
-                    output.write(&self.output_buf[..bytes_converted])?;
-                    remainder = 0;
-                    continue;
-                }
-                let chunks = self.output_buf[remainder..bytes_converted].chunks(self.wrap);
-                let last_index = chunks.len() - 1;
-                if remainder > 0 && last_index > 0 {
-                    output.write(&self.output_buf[..remainder])?;
-                    output.write(b"\n")?;
-                }
-                for (i, chunk) in chunks.enumerate() {
-                    output.write(chunk)?;
-                    if i < last_index {
-                        output.write(b"\n")?;
-                    } else {
-                        remainder = self.wrap - chunk.len();
-                    }
-                }
-            }
+            writer.write(&self.output_buf[..bytes_converted])?;
         }
         Ok(())
     }

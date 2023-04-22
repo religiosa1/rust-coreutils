@@ -12,3 +12,4 @@ With no FILE, or when FILE is -, read standard input.
 
 [dependencies]
 clap = { version = "4.1.8", features = ["derive"] }
+wrapped_writer = { path = "../../lib/wrapped_writer" }

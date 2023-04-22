@@ -49,12 +49,12 @@ impl Proc for Decoder {
 // our own version of it.
 // TODO investigate sorting it during compile time?..
 const ALPHABET: &'static [u8] =
-    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    b"+/0123456789=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 fn filter_bad_bytes(input: &[u8], output: &mut [u8], ignore_garbage: bool) -> usize {
     let mut counter = 0;
     let filter_fn = match ignore_garbage {
-        true => |byte: &u8| ALPHABET.contains(byte),
+        true => |byte: &u8| matches!(ALPHABET.binary_search(byte), Ok(_)),
         false => |byte: &u8| !byte.is_ascii_whitespace(),
     };
     for byte in input {

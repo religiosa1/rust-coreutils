@@ -7,6 +7,7 @@ members = [
   "utils/tail",
   "lib/chunk_reader",
   "lib/parse_num",
+  "lib/wrapped_writer",
 ]
 
 [profile.release]

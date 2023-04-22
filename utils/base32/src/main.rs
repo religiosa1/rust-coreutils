@@ -1,18 +1,25 @@
+mod alphabet;
 mod args;
 mod decode;
 mod encode;
+mod proc;
 
 use args::Args;
-use decode::decode;
-use encode::encode;
+use decode::Decoder;
+use encode::Encoder;
+use proc::Proc;
 use std::{
     fs::File,
-    io::{Read, Result},
+    io::{BufReader, Read, Result},
 };
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let action = if args.decode { decode } else { encode };
+    let mut p: Box<dyn Proc> = if args.decode {
+        Box::new(Decoder::new(&args))
+    } else {
+        Box::new(Encoder::new(&args))
+    };
     for filename in &args.file {
         let file: Box<dyn Read> = match filename.as_str() {
             "-" => Box::new(std::io::stdin()),
@@ -21,7 +28,8 @@ fn main() -> Result<()> {
                 Box::new(file)
             }
         };
-        action(&args, file)?;
+        let mut reader = BufReader::new(file);
+        p.proc(&mut reader, &mut std::io::stdout())?;
     }
     Ok(())
 }

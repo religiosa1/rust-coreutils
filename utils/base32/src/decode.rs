@@ -1,6 +1,15 @@
-use crate::args::Args;
-use std::io::{Read, Result};
+use crate::{args::Args, proc::Proc};
+use std::io::{Read, Result, Write};
 
-pub fn decode<R: Read>(_args: &Args, _file: R) -> Result<()> {
-    todo!();
+pub struct Decoder;
+impl Decoder {
+    pub fn new(args: &Args) -> Decoder {
+        Decoder
+    }
+}
+
+impl Proc for Decoder {
+    fn proc(&mut self, input: &mut dyn Read, write: &mut dyn Write) -> Result<()> {
+        todo!();
+    }
 }

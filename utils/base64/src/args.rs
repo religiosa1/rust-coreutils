@@ -13,7 +13,7 @@ pub struct Args {
     pub decode: bool,
 
     /// when decoding, ignore non-alphabet characters
-    #[arg(short = 'i', long, default_value_t = false, requires = "decode")]
+    #[arg(short = 'i', long, default_value_t = false)]
     pub ignore_garbage: bool,
 
     /// wrap encoded lines after COLS character.  Use 0 to disable line wrapping
