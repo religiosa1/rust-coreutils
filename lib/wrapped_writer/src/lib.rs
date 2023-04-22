@@ -23,6 +23,13 @@ impl<W: Write> WrappedWriter<W> {
         let chunking_start = match self.remainder {
             Some(remainder) => {
                 if remainder > 0 {
+                    if remainder >= buf.len() {
+                        // If we don't even have enough data to get to next wrapper,
+                        // Then we just decrease the remainder and finish the fn
+                        bytes_written += self.output.write(buf)?;
+                        self.remainder = Some(remainder - bytes_written);
+                        return Ok(bytes_written);
+                    }
                     bytes_written += self.output.write(&buf[..remainder])?;
                 }
                 bytes_written += self.output.write(b"\n")?;
@@ -91,5 +98,16 @@ mod tests {
         writer.write(b"78").unwrap();
         writer.write(b"90").unwrap();
         assert_eq!(b"123\n456\n789\n0".to_vec(), output_buf);
+    }
+
+    #[test]
+    fn input_buffer_can_be_smaller_than_wrap_value() {
+        let data = b"123456789";
+        let mut output_buf: Vec<u8> = Vec::new();
+        let cursor = Cursor::new(&mut output_buf);
+        let mut writer = WrappedWriter::new(cursor, 10);
+        writer.write(data).unwrap();
+        writer.write(data).unwrap();
+        assert_eq!(b"1234567891\n23456789".to_vec(), output_buf);
     }
 }
