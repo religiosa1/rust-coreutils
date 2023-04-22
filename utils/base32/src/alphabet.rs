@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub struct Alphabet {
     symbols: &'static [u8; 32],
     pub padding: Option<u8>,
