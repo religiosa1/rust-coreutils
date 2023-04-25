@@ -10,7 +10,7 @@ use encode::Encoder;
 use proc::Proc;
 use std::{
     fs::File,
-    io::{BufReader, Read, Result},
+    io::{BufReader, BufWriter, Read, Result},
 };
 
 fn main() -> Result<()> {
@@ -29,7 +29,7 @@ fn main() -> Result<()> {
             }
         };
         let mut reader = BufReader::new(file);
-        p.proc(&mut reader, &mut std::io::stdout())?;
+        p.proc(&mut reader, &mut BufWriter::new(std::io::stdout()))?;
     }
     Ok(())
 }
