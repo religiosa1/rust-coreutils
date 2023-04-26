@@ -1,6 +1,7 @@
 use crate::alphabet::{Alphabet, RFC4648_ALPHABET};
 use crate::{args::Args, proc::Proc};
-use std::io::{Read, Result, Write};
+use std::error::Error;
+use std::io::{Read, Write};
 
 const BUF_SIZE: usize = 5;
 const OUT_BUF_SIZE: usize = ((BUF_SIZE / 5 * 8 + 7) & !7) * 2;
@@ -23,7 +24,7 @@ impl Encoder {
 }
 
 impl Proc for Encoder {
-    fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<()> {
+    fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<(), Box<dyn Error>> {
         let mut writer = wrapped_writer::WrappedWriter::new(output, self.wrap);
         let mut bytes_read_in_chunk = 0;
         loop {

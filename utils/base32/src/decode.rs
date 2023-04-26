@@ -3,22 +3,57 @@ use crate::{
     args::Args,
     proc::Proc,
 };
+use std::error::Error;
 use std::io::{Read, Write};
 
-pub struct Decoder;
+const BUF_SIZE: usize = 8;
+const OUTPUT_BUF_SIZE: usize = 5;
+
+pub struct Decoder {
+    buf: [u8; BUF_SIZE],
+    output_buf: [u8; OUTPUT_BUF_SIZE],
+    ignore_garbage: bool,
+}
 impl Decoder {
-    pub fn new(_args: &Args) -> Decoder {
-        Decoder
+    pub fn new(args: &Args) -> Decoder {
+        Decoder {
+            buf: [0_u8; BUF_SIZE],
+            output_buf: [0_u8; OUTPUT_BUF_SIZE],
+            ignore_garbage: args.ignore_garbage,
+        }
     }
 }
 
 impl Proc for Decoder {
-    fn proc(
-        &mut self,
-        _input: &mut dyn Read,
-        _write: &mut dyn Write,
-    ) -> Result<(), std::io::Error> {
-        todo!();
+    fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<(), Box<dyn Error>> {
+        let mut temp = [0_u8; 1];
+        let filter_fn = match self.ignore_garbage {
+            true => |b: u8| matches!(RFC4648_ALPHABET.value(b), Ok(_)),
+            false => |b: u8| !b.is_ascii_whitespace(),
+        };
+        let mut bytes_read: usize = 0;
+        loop {
+            let n = input.read(&mut temp)?;
+
+            if n != 0 && filter_fn(temp[0]) {
+                self.buf[bytes_read] = temp[0];
+                bytes_read += 1;
+            }
+            if bytes_read == BUF_SIZE || n == 0 {
+                let bytes_conv = decode_chunk(
+                    &RFC4648_ALPHABET,
+                    &self.buf[..bytes_read],
+                    &mut self.output_buf,
+                )?;
+                bytes_read = 0;
+                output.write(&self.output_buf[..bytes_conv])?;
+            }
+            if n == 0 {
+                break;
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -40,7 +75,7 @@ fn decode_chunk(alphabet: &Alphabet, chunk: &[u8], output: &mut [u8]) -> Result<
     if let Some(b) = b1 {
         let val = b & 0b11;
         if val != 0 || matches!(b2, Some(_)) {
-            output[1] = val << 6 | b2.unwrap_or(0) << 1 | b3.unwrap_or(0) & 0b10000 >> 4;
+            output[1] = val << 6 | b2.unwrap_or(0) << 1 | (b3.unwrap_or(0) & 0b10000) >> 4;
             n = 2;
         }
     }
@@ -71,7 +106,6 @@ fn decode_chunk(alphabet: &Alphabet, chunk: &[u8], output: &mut [u8]) -> Result<
 
 #[cfg(test)]
 mod test {
-
     use super::*;
 
     #[test]
@@ -99,5 +133,13 @@ mod test {
 
         let b = decode_chunk(&RFC4648_ALPHABET, b"", &mut output);
         assert_eq!(b.unwrap(), 0);
+    }
+
+    #[test]
+    fn additional_tests_for_decode_chunk() {
+        let mut output = [0_u8; OUTPUT_BUF_SIZE];
+        let n = decode_chunk(&RFC4648_ALPHABET, b"NZQW2ZI=", &mut output).unwrap();
+        let str = String::from_utf8(output[..n].to_vec()).unwrap();
+        assert_eq!(str, String::from("name"));
     }
 }

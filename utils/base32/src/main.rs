@@ -9,11 +9,12 @@ use decode::Decoder;
 use encode::Encoder;
 use proc::Proc;
 use std::{
+    error::Error,
     fs::File,
-    io::{BufReader, BufWriter, Read, Result},
+    io::{BufReader, BufWriter, Read},
 };
 
-fn main() -> Result<()> {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let mut p: Box<dyn Proc> = if args.decode {
         Box::new(Decoder::new(&args))
