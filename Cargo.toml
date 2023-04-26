@@ -3,6 +3,7 @@ members = [
   "utils/base32",
   "utils/base64",
   "utils/cat",
+  "utils/rev",
   "utils/head",
   "utils/tail",
   "lib/chunk_reader",
