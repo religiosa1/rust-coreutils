@@ -58,6 +58,7 @@ impl<W: Write> Write for WrappedWriter<W> {
 
         let mut chunks = buf[chunking_start..].chunks(self.wrap).peekable();
         while let Some(chunk) = chunks.next() {
+            // TODO check if n of bytes read is zero?..
             self.bytes_written += self.output.write(chunk)?;
             bytes_read_total += chunk.len();
             if chunks.peek().is_some() {

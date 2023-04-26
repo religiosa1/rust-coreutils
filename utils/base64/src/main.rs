@@ -1,6 +1,7 @@
 mod args;
 mod decode;
 mod encode;
+mod filtered_reader;
 mod proc;
 
 use args::Args;
