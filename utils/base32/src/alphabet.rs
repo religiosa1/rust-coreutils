@@ -1,13 +1,18 @@
+use crate::base32_error::Base32Error;
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Alphabet {
     symbols: &'static [u8; 32],
     pub padding: Option<u8>,
 }
 impl Alphabet {
-    pub fn symbol(&self, index: u8) -> u8 {
-        self.symbols.get(index as usize).copied().unwrap()
+    pub fn symbol(&self, index: u8) -> Result<u8, Base32Error> {
+        match self.symbols.get(index as usize) {
+            Some(b) => Ok(*b),
+            None => Err(Base32Error::BadChar(index)),
+        }
     }
-    pub fn value(&self, char: u8) -> Result<Option<u8>, String> {
+    pub fn value(&self, char: u8) -> Result<Option<u8>, Base32Error> {
         if let Some(c) = self.padding {
             if c == char {
                 return Ok(None);
@@ -18,7 +23,7 @@ impl Alphabet {
                 return Ok(Some(i as u8));
             }
         }
-        Err("Bad char".into())
+        Err(Base32Error::BadChar(char))
     }
 }
 

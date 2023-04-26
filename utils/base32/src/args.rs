@@ -3,7 +3,7 @@ use clap::Parser;
 // @see https://docs.rs/clap/latest/clap/_derive/_tutorial/index.html
 
 /// base32 encode/decode data and print to standard output
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Default)]
 #[command(author, version, about, long_about)]
 pub struct Args {
     pub file: Vec<String>,

@@ -1,9 +1,9 @@
+use crate::base32_error::Base32Error;
 use crate::{
     alphabet::{Alphabet, RFC4648_ALPHABET},
     args::Args,
     proc::Proc,
 };
-use std::error::Error;
 use std::io::{Read, Write};
 
 const BUF_SIZE: usize = 8;
@@ -25,7 +25,7 @@ impl Decoder {
 }
 
 impl Proc for Decoder {
-    fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<(), Box<dyn Error>> {
+    fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<(), Base32Error> {
         let mut temp = [0_u8; 1];
         let filter_fn = match self.ignore_garbage {
             true => |b: u8| matches!(RFC4648_ALPHABET.value(b), Ok(_)),
@@ -57,46 +57,51 @@ impl Proc for Decoder {
     }
 }
 
-fn decode_chunk(alphabet: &Alphabet, chunk: &[u8], output: &mut [u8]) -> Result<usize, String> {
+fn decode_chunk(
+    alphabet: &Alphabet,
+    chunk: &[u8],
+    output: &mut [u8],
+) -> Result<usize, Base32Error> {
     let mut n: usize = 0;
-    let b0 = chunk.get(0).and_then(|b| alphabet.value(*b).unwrap());
-    let b1 = chunk.get(1).and_then(|b| alphabet.value(*b).unwrap());
-    let b2 = chunk.get(2).and_then(|b| alphabet.value(*b).unwrap());
-    let b3 = chunk.get(3).and_then(|b| alphabet.value(*b).unwrap());
-    let b4 = chunk.get(4).and_then(|b| alphabet.value(*b).unwrap());
-    let b5 = chunk.get(5).and_then(|b| alphabet.value(*b).unwrap());
-    let b6 = chunk.get(6).and_then(|b| alphabet.value(*b).unwrap());
-    let b7 = chunk.get(7).and_then(|b| alphabet.value(*b).unwrap());
 
-    if let Some(b) = b0 {
-        output[0] = b << 3 | (b1.unwrap_or(0) & 0b11100) >> 2;
+    let mut b: [Option<u8>; BUF_SIZE] = [None; BUF_SIZE];
+    for i in 0..BUF_SIZE {
+        let v = chunk.get(i).copied();
+        b[i] = match v {
+            Some(b) => alphabet.value(b)?,
+            None => None,
+        };
+    }
+
+    if let Some(v) = b[0] {
+        output[0] = v << 3 | (b[1].unwrap_or(0) & 0b11100) >> 2;
         n = 1;
     }
-    if let Some(b) = b1 {
-        let val = b & 0b11;
-        if val != 0 || matches!(b2, Some(_)) {
-            output[1] = val << 6 | b2.unwrap_or(0) << 1 | (b3.unwrap_or(0) & 0b10000) >> 4;
+    if let Some(v) = b[1] {
+        let val = v & 0b11;
+        if val != 0 || matches!(b[2], Some(_)) {
+            output[1] = val << 6 | b[2].unwrap_or(0) << 1 | (b[3].unwrap_or(0) & 0b10000) >> 4;
             n = 2;
         }
     }
-    if let Some(b) = b3 {
-        let val = b & 0b1111;
-        if val != 0 || matches!(b4, Some(_)) {
-            output[2] = val << 4 | (b4.unwrap_or(0) & 0b11110) >> 1;
+    if let Some(v) = b[3] {
+        let val = v & 0b1111;
+        if val != 0 || matches!(b[4], Some(_)) {
+            output[2] = val << 4 | (b[4].unwrap_or(0) & 0b11110) >> 1;
             n = 3;
         }
     }
-    if let Some(b) = b4 {
-        let val = b & 0b1;
-        if val != 0 || matches!(b5, Some(_)) {
-            output[3] = val << 7 | b5.unwrap_or(0) << 2 | (b6.unwrap_or(0) & 0b11000) >> 3;
+    if let Some(v) = b[4] {
+        let val = v & 0b1;
+        if val != 0 || matches!(b[5], Some(_)) {
+            output[3] = val << 7 | b[5].unwrap_or(0) << 2 | (b[6].unwrap_or(0) & 0b11000) >> 3;
             n = 4;
         }
     }
-    if let Some(b) = b6 {
-        let val = b & 0b111;
-        if val != 0 || matches!(b7, Some(_)) {
-            output[4] = val << 5 | b7.unwrap_or(0);
+    if let Some(v) = b[6] {
+        let val = v & 0b111;
+        if val != 0 || matches!(b[7], Some(_)) {
+            output[4] = val << 5 | b[7].unwrap_or(0);
             n = 5;
         }
     }
@@ -106,6 +111,8 @@ fn decode_chunk(alphabet: &Alphabet, chunk: &[u8], output: &mut [u8]) -> Result<
 
 #[cfg(test)]
 mod test {
+    use std::io::Cursor;
+
     use super::*;
 
     #[test]
@@ -131,15 +138,51 @@ mod test {
         assert_eq!(output.to_vec(), b"abcde".to_vec());
         assert_eq!(b.unwrap(), 5);
 
+        let n = decode_chunk(&RFC4648_ALPHABET, b"NZQW2ZI=", &mut output).unwrap();
+        let str = String::from_utf8(output[..n].to_vec()).unwrap();
+        assert_eq!(str, String::from("name"));
+
         let b = decode_chunk(&RFC4648_ALPHABET, b"", &mut output);
         assert_eq!(b.unwrap(), 0);
     }
 
+    fn decode(data: &[u8], args: &Args) -> String {
+        let mut input = Cursor::new(data);
+        let output_buf: Vec<u8> = Vec::new();
+        let mut output = Cursor::new(output_buf);
+        let mut p = Decoder::new(args);
+        p.proc(&mut input, &mut output).unwrap();
+        String::from_utf8(output.into_inner()).unwrap()
+    }
+
     #[test]
-    fn additional_tests_for_decode_chunk() {
-        let mut output = [0_u8; OUTPUT_BUF_SIZE];
-        let n = decode_chunk(&RFC4648_ALPHABET, b"NZQW2ZI=", &mut output).unwrap();
-        let str = String::from_utf8(output[..n].to_vec()).unwrap();
-        assert_eq!(str, String::from("name"));
+    fn decode_decodes() {
+        let res = decode(
+            b"EMQFGZLFEBWW64TFEBVWK6LTEBQW4ZBAORUGK2LSEBSGKZTJNZUXI2LPNZZQU===",
+            &Args::default(),
+        );
+
+        assert_eq!(res, "# See more keys and their definitions\n".to_string());
+    }
+
+    #[test]
+    fn decode_ignores_whitespaces() {
+        let res = decode(
+            b"EMQFGZLFEBWW 64TFEBVWK\t6LTEBQW4ZBA\nORU\rGK2LSEBSGKZTJNZUXI2LPNZZQU===",
+            &Args::default(),
+        );
+        assert_eq!(res, "# See more keys and their definitions\n".to_string());
+    }
+
+    #[test]
+    fn decode_ignores_garbage_if_asked() {
+        let res = decode(
+            b"garbageEMQFGZLFEBWW 64T^^FEBVWK\t6LTEBQW4ZBA\nORU\rGK2LSEBSGKZT---JNZUXI2LPNZZQU===",
+            &Args {
+                ignore_garbage: true,
+                ..Args::default()
+            },
+        );
+        assert_eq!(res, "# See more keys and their definitions\n".to_string());
     }
 }

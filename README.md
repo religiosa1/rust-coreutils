@@ -19,7 +19,7 @@ of standard library as much as possible.
 
 | Binary                    | Status      | Comments                                           |
 | ------------------------- | ----------- | -------------------------------------------------- |
-| [base32](./utils/base32/) | - WIP       |                                                    |
+| [base32](./utils/base32/) | + Completed |                                                    |
 | [base64](./utils/base64/) | - WIP       |                                                    |
 | [cat](./utils/cat/)       | + Completed |                                                    |
 | [head](./utils/tail/)     | + Completed | Test and optimisation are pending                  |
