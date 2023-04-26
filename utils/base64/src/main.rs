@@ -9,7 +9,7 @@ use encode::Encoder;
 use proc::Proc;
 use std::{
     fs::File,
-    io::{BufReader, Read, Result},
+    io::{BufReader, BufWriter, Read, Result},
 };
 
 fn main() -> Result<()> {
@@ -27,7 +27,7 @@ fn main() -> Result<()> {
             }
         };
         let mut input = BufReader::new(file);
-        p.proc(&mut input, &mut std::io::stdout())?;
+        p.proc(&mut input, &mut BufWriter::new(std::io::stdout()))?;
     }
     Ok(())
 }

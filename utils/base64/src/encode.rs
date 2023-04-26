@@ -1,22 +1,15 @@
 use crate::args::Args;
 use crate::proc::Proc;
-use base64::{engine::general_purpose, Engine as _};
-use std::io::{Read, Result, Write};
-
-const BUF_SIZE: usize = 8192;
-const OUTPUT_BUF_SIZE: usize = BUF_SIZE / 3 * 5;
+use base64::{engine::general_purpose, write::EncoderWriter};
+use std::io::{copy, Read, Result, Write};
 
 pub struct Encoder {
-    buf: [u8; BUF_SIZE],
-    output_buf: [u8; OUTPUT_BUF_SIZE],
     wrap: usize,
 }
 
 impl Encoder {
     pub fn new(args: &Args) -> Encoder {
         Encoder {
-            buf: [0_u8; BUF_SIZE],
-            output_buf: [0_u8; OUTPUT_BUF_SIZE],
             wrap: args.wrap.try_into().unwrap(),
         }
     }
@@ -24,19 +17,10 @@ impl Encoder {
 
 impl Proc for Encoder {
     fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<()> {
-        let mut writer = wrapped_writer::WrappedWriter::new(output, self.wrap);
+        let wrapped_writer = wrapped_writer::WrappedWriter::new(output, self.wrap);
+        let mut writer = EncoderWriter::new(wrapped_writer, &general_purpose::STANDARD);
 
-        loop {
-            let bytes_read = input.read(&mut self.buf)?;
-            if bytes_read == 0 {
-                break;
-            }
-            // TODO Check the padding stuff between two iterations!!!
-            let bytes_converted = general_purpose::STANDARD
-                .encode_slice(&self.buf[..bytes_read], &mut self.output_buf)
-                .unwrap();
-            writer.write(&self.output_buf[..bytes_converted])?;
-        }
+        copy(input, &mut writer)?;
         Ok(())
     }
 }
