@@ -1,0 +1,15 @@
+[package]
+name = "tac"
+version = "0.1.0"
+edition = "2021"
+description = """
+Write each FILE to standard output, last line first.
+
+With no FILE, or when FILE is -, read standard input.
+"""
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.1.8", features = ["derive"] }
+regex = "1"

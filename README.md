@@ -22,8 +22,9 @@ of standard library as much as possible.
 | [base32](./utils/base32/) | + Completed |                                                    |
 | [base64](./utils/base64/) | - WIP       |                                                    |
 | [cat](./utils/cat/)       | + Completed |                                                    |
-| [rev](./utils/rev/)       | + Completed | Part of util-linux, not coreutils                  |
 | [head](./utils/tail/)     | + Completed | Test and optimisation are pending                  |
+| [rev](./utils/rev/)       | + Completed | Part of util-linux, not coreutils                  |
+| [tac](./utils/tac/)       | - WIP       |                                                    |
 | [tail](./utils/tail/)     | - WIP       | Follow and PID behavior waiting for implementation |
 
 ## Repo structure

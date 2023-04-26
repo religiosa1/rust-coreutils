@@ -1,14 +1,15 @@
 [workspace]
 members = [
-  "utils/base32",
-  "utils/base64",
-  "utils/cat",
-  "utils/rev",
-  "utils/head",
-  "utils/tail",
   "lib/chunk_reader",
   "lib/parse_num",
   "lib/wrapped_writer",
+  "utils/base32",
+  "utils/base64",
+  "utils/cat",
+  "utils/head",
+  "utils/rev",
+  "utils/tac",
+  "utils/tail",
 ]
 
 [profile.release]
