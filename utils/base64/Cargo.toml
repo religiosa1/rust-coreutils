@@ -2,6 +2,8 @@
 name = "base64"
 version = "0.1.0"
 edition = "2021"
+authors = ["Viacheslav Azarov"]
+license = "MIT"
 description = """
 Base64 encode or decode FILE, or standard input, to standard output.
 

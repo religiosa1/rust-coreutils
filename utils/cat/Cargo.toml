@@ -3,6 +3,7 @@ name = "cat"
 version = "0.1.0"
 edition = "2021"
 authors = ["Viacheslav Azarov"]
+license = "MIT"
 description = """
 Concatenate FILE(s) to standard output.
 

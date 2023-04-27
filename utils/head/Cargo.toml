@@ -3,6 +3,7 @@ name = "head"
 version = "0.1.0"
 edition = "2021"
 authors = ["Viacheslav Azarov"]
+license = "MIT"
 description = """
 Print the first 10 lines of each FILE to standard output.
 With more than one FILE, precede each with a header giving the file name.

@@ -2,6 +2,8 @@
 name = "tac"
 version = "0.1.0"
 edition = "2021"
+authors = ["Viacheslav Azarov"]
+license = "MIT"
 description = """
 Write each FILE to standard output, last line first.
 
