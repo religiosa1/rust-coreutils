@@ -5,9 +5,9 @@ pub struct PidChecker {
     pid: Pid,
 }
 impl PidChecker {
-    pub fn new(pid: u32) -> Self {
+    pub fn new(pid: u32) -> Result<Self, ()> {
         Self {
-            pid: Pid::from_raw(pid),
+            pid: Pid::from_raw(pid.try_into().unwrap()),
         }
     }
     /** Determining a process status by sending an empty signal */
