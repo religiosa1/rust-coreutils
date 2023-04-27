@@ -31,5 +31,60 @@ pub fn split_str<R: Read>(input: &mut R, separator: &str) -> Result<Vec<Entry>, 
             }
         }
     }
+    if line.len() > 0 {
+        entries.push(Entry {
+            line: line,
+            separator: b"".to_vec(),
+        })
+    }
     Ok(entries)
+}
+
+#[cfg(test)]
+mod test {
+    use std::io::Cursor;
+
+    use super::*;
+
+    #[test]
+    fn splits_the_file() {
+        let mut input = Cursor::new(b"asd,ewq,");
+        let entries = split_str(&mut input, ",").unwrap();
+        assert_eq!(
+            entries,
+            vec![
+                Entry {
+                    line: b"asd".to_vec(),
+                    separator: b",".to_vec(),
+                },
+                Entry {
+                    line: b"ewq".to_vec(),
+                    separator: b",".to_vec(),
+                }
+            ]
+        )
+    }
+
+    #[test]
+    fn includes_trailing_line() {
+        let mut input = Cursor::new(b"asd,ewq,sdf");
+        let entries = split_str(&mut input, ",").unwrap();
+        assert_eq!(
+            entries,
+            vec![
+                Entry {
+                    line: b"asd".to_vec(),
+                    separator: b",".to_vec(),
+                },
+                Entry {
+                    line: b"ewq".to_vec(),
+                    separator: b",".to_vec(),
+                },
+                Entry {
+                    line: b"sdf".to_vec(),
+                    separator: b"".to_vec(),
+                }
+            ]
+        )
+    }
 }

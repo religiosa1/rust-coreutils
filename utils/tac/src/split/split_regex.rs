@@ -26,9 +26,31 @@ mod test {
     use std::io::Cursor;
 
     use super::*;
-
     #[test]
     fn splits_the_file() {
+        let mut input = Cursor::new(b"asd\nqew\t\txcv\t");
+        let entries = split_regex(&mut input, r"\s+").unwrap();
+        assert_eq!(
+            entries,
+            vec![
+                Entry {
+                    line: b"asd".to_vec(),
+                    separator: b"\n".to_vec(),
+                },
+                Entry {
+                    line: b"qew".to_vec(),
+                    separator: b"\t\t".to_vec(),
+                },
+                Entry {
+                    line: b"xcv".to_vec(),
+                    separator: b"\t".to_vec(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn includes_trailing_line() {
         let mut input = Cursor::new(b"asd\nqew\t\txcv\tsdf");
         let entries = split_regex(&mut input, r"\s+").unwrap();
         assert_eq!(

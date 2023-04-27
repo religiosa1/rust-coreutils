@@ -24,14 +24,14 @@ impl Error for TacError {
     }
 }
 
-impl From<std::io::Error> for TacError {
-    fn from(err: std::io::Error) -> Self {
-        TacError::IO(err)
-    }
+macro_rules! impl_from_error {
+    ($error_type:ty, $variant:ident) => {
+        impl From<$error_type> for TacError {
+            fn from(err: $error_type) -> Self {
+                TacError::$variant(err)
+            }
+        }
+    };
 }
-
-impl From<regex::Error> for TacError {
-    fn from(err: regex::Error) -> Self {
-        TacError::Regex(err)
-    }
-}
+impl_from_error!(std::io::Error, IO);
+impl_from_error!(regex::Error, Regex);
