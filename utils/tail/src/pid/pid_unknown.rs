@@ -1,4 +1,4 @@
-struct PidChecker;
+pub struct PidChecker;
 impl PidChecker {
     pub fn new(_pid: u32) -> io::Result<Self> {
         Err(io::Error::new(

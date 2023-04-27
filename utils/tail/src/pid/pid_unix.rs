@@ -1,7 +1,7 @@
 use nix::sys::signal::{kill, Signal};
 use nix::unistd::Pid;
 
-struct PidChecker {
+pub struct PidChecker {
     pid: Pid,
 }
 impl PidChecker {
