@@ -16,6 +16,7 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::io::BufReader;
+use std::io::BufWriter;
 
 pub fn head(args: &Args, name: &str) -> Result<(), HeadError> {
     let input: Box<dyn Read> = match name {
@@ -26,6 +27,7 @@ pub fn head(args: &Args, name: &str) -> Result<(), HeadError> {
         }
     };
     let reader = BufReader::new(input);
+    let mut output = BufWriter::new(std::io::stdout());
 
     match args {
         Args {
@@ -33,14 +35,14 @@ pub fn head(args: &Args, name: &str) -> Result<(), HeadError> {
                 prefix: Some('-'), ..
             }),
             ..
-        } => head_negative_bytes(args, reader),
-        Args { bytes: Some(_), .. } => head_bytes(args, reader),
+        } => head_negative_bytes(args, reader, &mut output),
+        Args { bytes: Some(_), .. } => head_bytes(args, reader, &mut output),
         Args {
             lines: NumValue {
                 prefix: Some('-'), ..
             },
             ..
-        } => head_negative_lines(args, reader),
-        _ => head_lines(args, reader),
+        } => head_negative_lines(args, reader, &mut output),
+        _ => head_lines(args, reader, &mut output),
     }
 }

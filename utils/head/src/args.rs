@@ -4,7 +4,7 @@ use parse_num::{parse_num, NumValue};
 // @see https://docs.rs/clap/latest/clap/_derive/_tutorial/index.html
 
 /// output the last part of files
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Default)]
 #[command(author, version, about, long_about)]
 pub struct Args {
     pub file: Vec<String>,

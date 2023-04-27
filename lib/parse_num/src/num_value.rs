@@ -42,6 +42,26 @@ impl NumValue {
     }
 }
 
+impl From<usize> for NumValue {
+    fn from(value: usize) -> Self {
+        Self {
+            prefix: None,
+            value: value,
+            multiplier: None,
+        }
+    }
+}
+
+impl From<i32> for NumValue {
+    fn from(value: i32) -> Self {
+        Self {
+            prefix: if value < 0 { Some('-') } else { None },
+            value: value.abs() as usize,
+            multiplier: None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -136,6 +156,38 @@ mod test {
             }
             .to_usize(),
             None
+        );
+    }
+
+    #[test]
+    fn from_usize() {
+        assert_eq!(
+            NumValue::from(123_usize),
+            NumValue {
+                prefix: None,
+                value: 123,
+                multiplier: None
+            }
+        );
+    }
+
+    #[test]
+    fn from_i32() {
+        assert_eq!(
+            NumValue::from(123),
+            NumValue {
+                prefix: None,
+                value: 123,
+                multiplier: None
+            }
+        );
+        assert_eq!(
+            NumValue::from(-123),
+            NumValue {
+                prefix: Some('-'),
+                value: 123,
+                multiplier: None
+            }
         );
     }
 }
