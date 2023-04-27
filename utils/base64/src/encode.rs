@@ -1,7 +1,7 @@
-use crate::args::Args;
 use crate::proc::Proc;
+use crate::{args::Args, base64_error::Base64Error};
 use base64::{engine::general_purpose, write::EncoderWriter};
-use std::io::{copy, Read, Result, Write};
+use std::io::{copy, Read, Write};
 
 pub struct Encoder {
     wrap: usize,
@@ -16,7 +16,7 @@ impl Encoder {
 }
 
 impl Proc for Encoder {
-    fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<()> {
+    fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<(), Base64Error> {
         let wrapped_writer = wrapped_writer::WrappedWriter::new(output, self.wrap);
         let mut writer = EncoderWriter::new(wrapped_writer, &general_purpose::STANDARD);
 

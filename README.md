@@ -20,7 +20,7 @@ of standard library as much as possible.
 | Binary                    | Status      | Comments                                           |
 | ------------------------- | ----------- | -------------------------------------------------- |
 | [base32](./utils/base32/) | + Completed |                                                    |
-| [base64](./utils/base64/) | - WIP       |                                                    |
+| [base64](./utils/base64/) | + Completed |                                                    |
 | [cat](./utils/cat/)       | + Completed |                                                    |
 | [head](./utils/tail/)     | + Completed |                                                    |
 | [rev](./utils/rev/)       | + Completed | Part of util-linux, not coreutils                  |

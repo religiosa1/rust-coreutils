@@ -1,6 +1,6 @@
-use crate::args::Args;
 use crate::filtered_reader::FilteredReader;
 use crate::proc::Proc;
+use crate::{args::Args, base64_error::Base64Error};
 use base64::{engine::general_purpose, read::DecoderReader};
 use std::io::{copy, Read, Write};
 
@@ -23,7 +23,7 @@ const ALPHABET: &'static [u8] =
     b"+/0123456789=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 impl Proc for Decoder {
-    fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<(), std::io::Error> {
+    fn proc(&mut self, input: &mut dyn Read, output: &mut dyn Write) -> Result<(), Base64Error> {
         let mut filtered_reader = FilteredReader::new(
             input,
             match self.ignore_garbage {

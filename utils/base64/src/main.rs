@@ -1,19 +1,21 @@
 mod args;
+mod base64_error;
 mod decode;
 mod encode;
 mod filtered_reader;
 mod proc;
 
 use args::Args;
+use base64_error::Base64Error;
 use decode::Decoder;
 use encode::Encoder;
 use proc::Proc;
 use std::{
     fs::File,
-    io::{BufReader, BufWriter, Read, Result},
+    io::{BufReader, BufWriter, Read},
 };
 
-fn main() -> Result<()> {
+fn main() -> Result<(), Base64Error> {
     let args = Args::parse();
     let mut p: Box<dyn Proc> = match args.decode {
         true => Box::new(Decoder::new(&args)),
